@@ -166,21 +166,21 @@ async function conQuery(sql, values) {
 
 
 
-async function insertData() {
+async function insertData(n) {
     let data = genData(Date.now() - 1)
-    let genDataRes = await generateData(data, 0, 15000)
+    let genDataRes = await generateData(data, 0, n)
     let insertRes = await conQuery('insert into sync_copy values ' + genDataRes)
     return insertRes
 }
 
 // create table
 
-conQuery()
+// conQuery()
 
 // 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据
-// insertData().then(res => {
-//     console.log(res)
-// })
+insertData(15000).then(res => {
+    console.log(res)
+})
 
 
 //查询数据
@@ -229,12 +229,12 @@ async function handleOriIntoDest(oriSql,destSql){
 // let destSql=`insert into sync_copy_00 set ?`
 
 // 增量数据填充到目标表
+//
+// let oriSql=`select * from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest)`
+// let destSql=`insert into sync_copy_00 set ?`
 
-let oriSql=`select * from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest)`
-let destSql=`insert into sync_copy_00 set ?`
 
-
-handleOriIntoDest(oriSql,destSql)
+// handleOriIntoDest(oriSql,destSql)
 
 
 //     .on('end',function () {
