@@ -47,6 +47,7 @@ var moment = require('moment')
 
 // max_allowed_packet
 // show variables like 'max_allowed_packet'
+// set global max_allowed_packet=512*1024*1024
 var connection = mysql.createConnection({
     host: 'localhost',
     port: '3306',
@@ -144,7 +145,7 @@ let j = 0
 
 async function generateData(data, data_00, n) {
     for (let i = 1; i <= n - 1; i++) {
-        let curr_time = await func1(1)
+        let curr_time = await func1(2)
         console.log(curr_time)
         console.log(i)
         data = data + "," + genData(curr_time)
@@ -178,13 +179,14 @@ async function insertData(n) {
 // conQuery()
 
 // 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据
-insertData(15000).then(res => {
+insertData(100000).then(res => {
     console.log(res)
 })
 
 
+
 //查询数据
-let a = 0
+let a = 0,b=0
 // 查询数据
 
 
@@ -219,13 +221,14 @@ async function handleOriIntoDest(oriSql,destSql){
         //  })
         connection.query(destSql, data00, (err, result, fields) => {
             // console.log('111111111111', '00000000000')
-            console.log(err, result, fields)
+            // console.log(err, result, fields)
+            console.log(b++)
         })
     })
 }
 
 // 初始化目标表
-// let oriSql=`select * from sync_copy`
+// let oriSql=`select * from sync_copy limit 900001,100000`
 // let destSql=`insert into sync_copy_00 set ?`
 
 // 增量数据填充到目标表
