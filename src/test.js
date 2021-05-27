@@ -166,7 +166,6 @@ async function conQuery(sql, values) {
 }
 
 
-
 async function insertData(n) {
     let data = genData(Date.now() - 1)
     let genDataRes = await generateData(data, 0, n)
@@ -179,64 +178,192 @@ async function insertData(n) {
 // conQuery()
 
 // 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据
-insertData(100000).then(res => {
-    console.log(res)
-})
+// insertData(100000).then(res => {
+//     console.log(res)
+// })
 
+async function paraInsert(n) {
+    let arrPromise = []
+    for (let i = 0; i < n; i++) {
+        let curr_time = await func1(2)
+        // console.log(curr_time)
+        arrPromise.push(await conQuery('insert into sync_copy values ' + genData(curr_time)))
+    }
+    return Promise.all(arrPromise)
+}
+
+// paraInsert(100).then(res => {
+//     console.log(res)
+// })
+
+
+let start_time = Date.now()
+
+async function simulationOrder(time = 5 * 60 * 1000) {
+    let curr_time
+    let i = 0
+    let randomForOrder
+    let orderSum = 0
+    do {
+        let delay_curr = await func1(1000)
+        randomForOrder = parseInt(Math.random(0, 1) * 20 + 1000)
+        console.log(delay_curr, randomForOrder)
+        orderSum += randomForOrder
+        await paraInsert(randomForOrder)
+        i++
+        curr_time = Date.now()
+        // console.log(curr_time)
+    } while (curr_time - start_time - time < 0)
+    return {i, orderSum}
+}
+
+//一定时间内 不间断 推送数据到数据库//一定时间内 不间断 推送数据到数据库//一定时间内 不间断 推送数据到数据库//一定时间内 不间断 推送数据到数据库//一定时间内 不间断 推送数据到数据库
+// simulationOrder(5 * 60 * 1000).then(res => {
+//     console.log(res)
+// })
 
 
 //查询数据
-let a = 0,b=0
+let a = 0, b = 0
 // 查询数据
 
 
 // stream({highWaterMark: 100})
 
-async function handleOriIntoDest(oriSql,destSql){
-    connection.query(oriSql).on("result", function (row, i) {
-        console.log(row.tid, i, a++)
-        let jdp_response_js=JSON.parse(row.jdp_response)
-        let data00 = {
-            tid: row.tid,
-            status: row.status,
-            type: row.type,
-            seller_nick: row.seller_nick,
-            buyer_nick: row.buyer_nick,
-            created: row.created, //`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            modified: row.modified,//`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            // created: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            // modified: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            jdp_hashcode: row.jdp_hashcode, //`-${generateRandomNum(9)}`,
-            jdp_response: row.jdp_response, //`${jsonData}`,
-            jdp_created: row.jdp_created,// `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            jdp_modified: row.jdp_modified, //`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`
-            // jdp_created: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            // jdp_modified: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
-            customization: jdp_response_js.trade_fullinfo_get_response&&jdp_response_js.trade_fullinfo_get_response.trade&&jdp_response_js.trade_fullinfo_get_response.trade.orders&&jdp_response_js.trade_fullinfo_get_response.trade.orders.order&&jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0]&&jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0].customization?JSON.stringify(jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0].customization):NULL
+async function handleOriIntoDest(oriSql, destSql) {
+    // connection.query(oriSql).on("result", async function (row, i) {
+    //     console.log(row.tid, i, a++)
+    //     let jdp_response_js = JSON.parse(row.jdp_response)
+    //     let data00 = {
+    //         tid: row.tid,
+    //         status: row.status,
+    //         type: row.type,
+    //         seller_nick: row.seller_nick,
+    //         buyer_nick: row.buyer_nick,
+    //         created: row.created, //`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         modified: row.modified,//`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         // created: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         // modified: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         jdp_hashcode: row.jdp_hashcode, //`-${generateRandomNum(9)}`,
+    //         jdp_response: row.jdp_response, //`${jsonData}`,
+    //         jdp_created: row.jdp_created,// `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         jdp_modified: row.jdp_modified, //`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`
+    //         // jdp_created: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         // jdp_modified: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+    //         customization: jdp_response_js.trade_fullinfo_get_response && jdp_response_js.trade_fullinfo_get_response.trade && jdp_response_js.trade_fullinfo_get_response.trade.orders && jdp_response_js.trade_fullinfo_get_response.trade.orders.order && jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0] && jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0].customization ? JSON.stringify(jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0].customization) : NULL
+    //     }
+    //     // console.log(data00)
+    //
+    //     // await conQuery('insert into sync_copy_00 set ?',data00).then(res=>{
+    //     //      console.log(res)
+    //     //  })
+    //     // connection.query(destSql, data00, (err, result, fields) => {
+    //     //     // console.log('111111111111', '00000000000')
+    //     //     // console.log(err, result, fields)
+    //     //     console.log(b++)
+    //     // })
+    // })
+    //
+    let queryRes = await conQuery(oriSql)
+    if (queryRes.length) {
+        let i = 0
+        for (let item of queryRes) {
+            console.log("tid++++++++++==========+++++++++tid", item.tid, i++)
+            let jdp_response_js = JSON.parse(item.jdp_response)
+            let data00 = {
+                tid: item.tid,
+                status: item.status,
+                type: item.type,
+                seller_nick: item.seller_nick,
+                buyer_nick: item.buyer_nick,
+                created: item.created, //`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                modified: item.modified,//`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                // created: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                // modified: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                jdp_hashcode: item.jdp_hashcode, //`-${generateRandomNum(9)}`,
+                jdp_response: item.jdp_response, //`${jsonData}`,
+                jdp_created: item.jdp_created,// `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                jdp_modified: item.jdp_modified, //`${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`
+                // jdp_created: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                // jdp_modified: `${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}`,
+                customization: jdp_response_js.trade_fullinfo_get_response && jdp_response_js.trade_fullinfo_get_response.trade && jdp_response_js.trade_fullinfo_get_response.trade.orders && jdp_response_js.trade_fullinfo_get_response.trade.orders.order && jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0] && jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0].customization ? JSON.stringify(jdp_response_js.trade_fullinfo_get_response.trade.orders.order[0].customization) : NULL
+            }
+            try {
+                await conQuery(destSql, data00)
+            } catch (e) {
+                continue
+            } finally {
+                continue
+            }
         }
-        // console.log(data00)
+    }
 
-        // await conQuery('insert into sync_copy_00 set ?',data00).then(res=>{
-        //      console.log(res)
-        //  })
-        connection.query(destSql, data00, (err, result, fields) => {
-            // console.log('111111111111', '00000000000')
-            // console.log(err, result, fields)
-            console.log(b++)
-        })
-    })
 }
 
-// 初始化目标表
-// let oriSql=`select * from sync_copy limit 900001,100000`
+// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表
+// let oriSql=`select * from sync_copy limit ${900001},100000`
 // let destSql=`insert into sync_copy_00 set ?`
 
-// 增量数据填充到目标表
+// conQuery().then(res=>{
+//     console.log(res,res[0].orderSum)
+//
+// })
+
+async function initDest() {
+    let queryArr = await conQuery(`select count(ori.tid) orderSum from sync_copy ori`)
+    let orderSum = queryArr[0].orderSum
+    let baseCnt = 1, inc = 100000
+    do {
+        console.log(baseCnt, inc)
+        let oriSql = `select * from sync_copy limit ${baseCnt},${inc}`
+        let destSql = `insert into sync_copy_00 set ?`
+        await handleOriIntoDest(oriSql, destSql)
+        baseCnt += inc
+    } while (orderSum - baseCnt > 0)
+    return true
+}
+
+// initDest().then(res => {
+//     console.log("update success", res)
+//     process.exit(0)
+// })
+
+// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表
 //
 // let oriSql=`select * from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest)`
 // let destSql=`insert into sync_copy_00 set ?`
 
+async function pubDataIntoDest() {
 
+    let baseCnt = 0, inc = 100000
+    let isDo = false
+    // 推送数据到ori
+    simulationOrder(30 * 60 * 1000).then(res => {
+        console.log(res)
+    })
+
+    do {
+        console.log(baseCnt, inc,a++)
+        await func1(10000)
+        let queryArr = await conQuery(`select count(ori.tid) orderSum from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest)`)
+        let orderSum = queryArr[0].orderSum
+        console.log(orderSum)
+        if (orderSum) {
+            let oriSql = `select * from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest) limit ${baseCnt},${inc}`
+            let destSql = `insert into sync_copy_00 set ?`
+            await handleOriIntoDest(oriSql, destSql)
+            // isDo = true
+        } else {
+            // isDo = false
+        }
+    } while (true)
+    return true
+}
+
+pubDataIntoDest().then(res => {
+    console.log(res)
+    process.exit(0)
+})
 // handleOriIntoDest(oriSql,destSql)
 
 
