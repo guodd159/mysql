@@ -338,12 +338,12 @@ async function pubDataIntoDest() {
     let baseCnt = 0, inc = 100000
     let isDo = false
     // 推送数据到ori
-    simulationOrder(30 * 60 * 1000).then(res => {
-        console.log(res)
-    })
+    // simulationOrder(30 * 60 * 1000).then(res => {
+    //     console.log(res)
+    // })
 
     do {
-        console.log(baseCnt, inc,a++)
+        console.log(baseCnt, inc, a++)
         await func1(10000)
         let queryArr = await conQuery(`select count(ori.tid) orderSum from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest)`)
         let orderSum = queryArr[0].orderSum
@@ -356,15 +356,77 @@ async function pubDataIntoDest() {
         } else {
             // isDo = false
         }
-    } while (true)
+    } while (false)
     return true
 }
 
-pubDataIntoDest().then(res => {
+//
+// pubDataIntoDest().then(res => {
+//     console.log(res)
+//     process.exit(0)
+// })
+
+
+//////处理ori变化的数据 sync into dest
+
+
+async function updateOriIntoDest(oriSql, destSql) {
+    let queryRes = await conQuery(oriSql)
+    if (queryRes.length) {
+        let i = 0
+        for (let item of queryRes) {
+            console.log("tid++++++++++==========+++++++++tid", item, i++)
+            let newDestSql = `${destSql} jdp_hashcode=${JSON.stringify(item.ori_jdp_hashcode)} where dest.tid=${item.dest_tid}`
+            console.log(newDestSql)
+            try {
+                await conQuery(newDestSql)
+            } catch (e) {
+                console.log(e)
+                continue
+            } finally {
+                continue
+            }
+        }
+    }
+
+}
+
+
+async function updateDataIntoDest() {
+    let baseCnt = 0, inc = 100000
+    let isDo = false
+    do {
+        console.log(baseCnt, inc, a++)
+        // await func1(10000)
+        let queryArr = await conQuery(`select 
+ori.tid as ori_tid,
+ori.jdp_hashcode as ori_jdp_hashcode,
+dest.tid as dest_tid,
+dest.jdp_hashcode as dest_jdp_hashcode
+from sync_copy as ori,sync_copy_00 as dest 
+where ori.tid=dest.tid and ori.jdp_hashcode!=dest.jdp_hashcode
+limit ${baseCnt},${inc}`)
+        let orderSum = queryArr
+        // console.log(orderSum)
+        if (orderSum) {
+            let oriSql = `select ori.tid as ori_tid,ori.jdp_hashcode as ori_jdp_hashcode,dest.tid as dest_tid,dest.jdp_hashcode as dest_jdp_hashcode
+                          from sync_copy as ori,sync_copy_00 as dest 
+                          where ori.tid=dest.tid and ori.jdp_hashcode!=dest.jdp_hashcode
+                          limit ${baseCnt},${inc}`
+            let destSql = `update sync_copy_00 as dest set `
+            await updateOriIntoDest(oriSql, destSql)
+            // isDo = true
+        } else {
+            // isDo = false
+        }
+    } while (false)
+    return true
+}
+
+
+updateDataIntoDest().then(res => {
     console.log(res)
-    process.exit(0)
 })
-// handleOriIntoDest(oriSql,destSql)
 
 
 //     .on('end',function () {
