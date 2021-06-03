@@ -86,7 +86,7 @@ var connection = mysql.createConnection({
 // mysql.escape()
 // mysql.format()
 
-
+// 生成n位数随机数
 function generateRandomNum(n) {
     let code = "";
     for (var i = 1; i <= n; i++) {
@@ -95,7 +95,7 @@ function generateRandomNum(n) {
     }
     return code
 }
-
+// 生成时间戳的随机数
 function generateUniqueNum(curr_time) {
     return Number(curr_time + "" + generateRandomNum(6))
 }
@@ -127,12 +127,13 @@ let jsonData = `{"trade_fullinfo_get_response": {"trade": {"num": 1, "sid": "160
 //
 // }
 // let data = `( ${generateUniqueNum()}, 'TRADE_CLOSED_BY_TAOBAO', 'fixed', '白石王', ` + `'relax${generateUniqueNum()}', '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', '-${generateRandomNum(9)}', '${jsonData}','${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}')`
+// 生成一条数据
 function genData(curr_time) {
     return `( ${generateUniqueNum(curr_time)}, 'TRADE_CLOSED_BY_TAOBAO', 'fixed', '白石王', ` + `'relax${generateUniqueNum(curr_time)}', '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', '-${generateRandomNum(9)}', '${jsonData}','${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}', '${moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}')`
 
 }
 
-
+// 延时
 async function func1(n) {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -142,7 +143,7 @@ async function func1(n) {
 }
 
 let j = 0
-
+// 生成n 条数据
 async function generateData(data, data_00, n) {
     for (let i = 1; i <= n - 1; i++) {
         let curr_time = await func1(2)
@@ -153,7 +154,7 @@ async function generateData(data, data_00, n) {
     return data
 }
 
-
+// mysql 操作
 async function conQuery(sql, values) {
     return new Promise((resolve, reject) => {
         connection.query(sql, values, (err, result, fields) => {
@@ -208,12 +209,15 @@ CREATE TABLE \`sync_copy_00\`  (
   INDEX \`ind_buyer_nick\`(\`buyer_nick\`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 SET FOREIGN_KEY_CHECKS = 1;`
+
+// 创建表
 async function createTable() {
   await conQuery(ori)
   await conQuery(dest)
   return true
 }
 
+// 插入数据
 async function preInsertData(n) {
   let data = genData(Date.now() - 1)
   let genDataRes = await generateData(data, 0, n)
@@ -221,6 +225,7 @@ async function preInsertData(n) {
   return insertRes
 }
 
+// 插入num条数据
 async function insertData(num) {
   try{
     let cnt = parseInt(num / 10000)
@@ -253,6 +258,7 @@ async function insertData(num) {
 //     console.log(res)
 // })
 
+// 插入数据
 async function paraInsert(n) {
     let arrPromise = []
     for (let i = 0; i < n; i++) {
@@ -270,8 +276,7 @@ async function paraInsert(n) {
 
 let start_time = Date.now()
 
-// 一定时间内 不间断 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori
-
+// 一定时间内 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori// 推送数据到ori
 async function simulationOrder(time = 5 * 60 * 1000) {
     let curr_time
     let i = 0
@@ -303,6 +308,7 @@ let a = 0, b = 0
 
 // stream({highWaterMark: 100})
 
+//处理源表数据到目标表
 async function handleOriIntoDest(oriSql, destSql) {
   // connection.query(oriSql).on("result", async function (row, i) {
   //     console.log(row.tid, i, a++)
@@ -397,7 +403,7 @@ async function handleOriIntoDest(oriSql, destSql) {
 //     console.log(res,res[0].orderSum)
 //
 // })
-
+// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表// 初始化目标表
 async function initDest() {
     let queryArr = await conQuery(`select count(ori.tid) orderSum from sync_copy ori`)
     let orderSum = queryArr[0].orderSum
@@ -422,6 +428,9 @@ async function initDest() {
 // let oriSql=`select * from sync_copy ori where ori.tid not in(select dest.tid from sync_copy_00 dest)`
 // let destSql=`insert into sync_copy_00 set ?`
 
+
+
+// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表// 增量数据填充到目标表
 async function pubDataIntoDest() {
 
     let baseCnt = 0, inc = 100000
@@ -452,8 +461,6 @@ async function pubDataIntoDest() {
 
 
 //////处理ori变化的数据 sync into dest
-
-
 async function updateOriIntoDest(oriSql, destSql) {
     let queryRes = await conQuery(oriSql)
     if (queryRes.length) {
@@ -476,7 +483,6 @@ async function updateOriIntoDest(oriSql, destSql) {
 }
 
 //随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori//随机更新ori
-
 async function updateOriByRandom() {
   do {
     await func1(10000)
