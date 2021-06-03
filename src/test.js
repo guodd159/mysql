@@ -223,7 +223,7 @@ async function preInsertData(n) {
 
 async function insertData(num) {
   try{
-    let cnt = num / 10000
+    let cnt = parseInt(num / 10000)
     let remainCnt = num % 10000
     if (cnt - 1 >= 0) {
       for (let i = 0; i < cnt; i++) {
