@@ -7,7 +7,7 @@ daily collection for mysql
    console.log(res)
  })
 
-#  插入数据到ori
+#  插入数据到源表
  insertData(100000).then(res => {
      console.log(res)
  })
