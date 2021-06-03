@@ -158,7 +158,7 @@ async function conQuery(sql, values) {
     return new Promise((resolve, reject) => {
         connection.query(sql, values, (err, result, fields) => {
             if (err)
-                reject(err)
+              resolve(err)
             else
                 resolve(result)
         })
@@ -213,11 +213,35 @@ async function createTable() {
   await conQuery(dest)
   return true
 }
-async function insertData(n) {
-    let data = genData(Date.now() - 1)
-    let genDataRes = await generateData(data, 0, n)
-    let insertRes = await conQuery('insert into sync_copy values ' + genDataRes)
-    return insertRes
+
+async function preInsertData(n) {
+  let data = genData(Date.now() - 1)
+  let genDataRes = await generateData(data, 0, n)
+  let insertRes = await conQuery('insert into sync_copy values ' + genDataRes)
+  return insertRes
+}
+
+async function insertData(num) {
+  try{
+    let cnt = num / 10000
+    let remainCnt = num % 10000
+    if (cnt - 1 >= 0) {
+      for (let i = 0; i < cnt; i++) {
+        let insertRes = await preInsertData(10000)
+        console.log("insertRes+00+00+insertRes", i, insertRes)
+      }
+    }
+    if (remainCnt) {
+      let insertRes = await preInsertData(remainCnt)
+      console.log("insertRes+11+11+insertRes", insertRes)
+    }
+
+    return true
+  }catch (e){
+    console.log(e)
+    return e
+  }
+
 }
 
 // create table
@@ -511,12 +535,12 @@ limit ${baseCnt},${inc}`)
 
 
 //创建表//创建表//创建表//创建表//创建表//创建表//创建表//创建表//创建表//创建表//创建表
-createTable().then(res=>{
-  console.log("创建表成功",res)
-  process.exit(0)
-})
+// createTable().then(res=>{
+//   console.log("创建表成功",res)
+//   process.exit(0)
+// })
 // 插入数据到ori// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据// 插入数据
-// insertData(100000).then(res => {
+// insertData(50001).then(res => {
 //   console.log("insert success",res)
 //   process.exit(0)
 //
