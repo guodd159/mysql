@@ -401,7 +401,7 @@ async function handleOriIntoDest(oriSql, destSql) {
 async function initDest() {
     let queryArr = await conQuery(`select count(ori.tid) orderSum from sync_copy ori`)
     let orderSum = queryArr[0].orderSum
-    let baseCnt = 1, inc = 100000
+    let baseCnt = 0, inc = 100000
     do {
         console.log(baseCnt, inc)
         let oriSql = `select * from sync_copy limit ${baseCnt},${inc}`
